@@ -1,101 +1,138 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element */
+'use client';
+import Image from 'next/image';
+import {useRef, useState} from 'react';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+	const videoRef = useRef<HTMLVideoElement | null>(null);
+	const [isCameraActive, setIsCameraActive] = useState(false);
+	const [hasClicked, setHasClicked] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
+	const [image, setImage] = useState('');
+	const [hasGotten, setHasGotten] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+	const handleCamera = () => {
+		const video = videoRef.current;
+		// Start camera stream when the component is mounted
+		const startCamera = async () => {
+			try {
+				const stream = await navigator.mediaDevices.getUserMedia({
+					video: true,
+				});
+				if (video) {
+					video.srcObject = stream;
+				}
+				setIsCameraActive(true);
+				setHasGotten(true);
+			} catch (err) {
+				console.error('Error accessing camera: ', err);
+				setIsCameraActive(false);
+			}
+		};
+
+		startCamera();
+	};
+
+	const handleUpload = () => {
+		handleStopStream();
+		fileInputRef.current?.click();
+	};
+
+	const handleStopStream = () => {
+		const video = videoRef.current;
+		if (video && video.srcObject) {
+			const stream = video.srcObject as MediaStream;
+			const tracks = stream.getTracks();
+
+			tracks.forEach(track => {
+				track.stop();
+			});
+		}
+	};
+
+	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		if (e.target.files && e.target.files[0]) {
+			const selectedImage = e.target.files[0];
+			const imageUrl = URL.createObjectURL(selectedImage);
+			setImage(imageUrl);
+			setHasGotten(true);
+		}
+	};
+
+	console.log(image);
+	return (
+		<div className="flex gap-x-5">
+			<aside className="bg-[#171717] p-10 h-screen">
+				<h1 className="text-2xl">OpticsMongo</h1>
+
+				<h1 className="mt-4">History</h1>
+			</aside>
+			<main className="p-10 flex h-screen justify-between flex-1">
+				<div>
+					<video
+						ref={videoRef}
+						autoPlay
+						playsInline
+						style={{
+							borderRadius: '10px',
+							display: isCameraActive ? 'block' : 'none',
+						}}
+						className="w-screen"
+					/>
+					{/* {isCameraActive && (
+						<div>
+							<span className="text-red-600 w-32 h-32"></span>
+						</div>
+					)} */}
+				</div>
+				{!hasGotten ? (
+					<>
+						<div className="flex-1 justify-center items-center flex cursor-pointer">
+							<div
+								className="flex flex-col items-center gap-y-5  p-3"
+								onClick={handleCamera}
+							>
+								{!isCameraActive && (
+									<>
+										<i className="fa-solid fa-camera fa-5x"></i>
+										<p className="text-4xl">Take Image</p>
+									</>
+								)}
+								{hasClicked && !isCameraActive && (
+									<p className="text-red-500">Failed to access camera.</p>
+								)}
+							</div>
+						</div>
+						<div className="w-3 h-full bg-white rounded-lg"></div>
+						<div className="flex-1 justify-center items-center flex cursor-pointer">
+							<input
+								type="file"
+								accept="image/*"
+								onChange={handleImageChange}
+								ref={fileInputRef}
+								className="hidden"
+							/>
+							{!image && (
+								<div
+									className="flex flex-col items-center gap-y-5"
+									onClick={handleUpload}
+								>
+									<i className="fa-regular fa-image fa-5x"></i>
+									<p className="text-4xl">Upload Image</p>
+								</div>
+							)}
+						</div>
+					</>
+				) : (
+					<>
+						{image && (
+							<div>
+								<img src={image} alt="Selected" className="w-screen h-full" />
+							</div>
+						)}
+					</>
+				)}
+			</main>
+		</div>
+	);
 }
